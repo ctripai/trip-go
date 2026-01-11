@@ -23,5 +23,5 @@ TripGo AI 旅行规划项目，帮助现代“懒人”们轻松开启每一次�
 5. 重新部署以应用环境变量: `vercel --prod`
 
 ### 测试 API
-- 部署后，访问 `https://your-vercel-url.vercel.app/` 查看前端界面，页面上可选择模型并指定 ChatGPT 子模型（例如 `gpt-5-nano` / `gpt-4` / `gpt-4o` / `gpt-3.5-turbo`）。
+- 部署后，访问 `https://your-vercel-url.vercel.app/` 查看前端界面，页面上使用默认 OpenAI 模型 `gpt-5-nano`。
 - API 端点: `https://your-vercel-url.vercel.app/api/deepseek` 返回模型响应（支持 `model` 与 `openaiModel` 参数）。

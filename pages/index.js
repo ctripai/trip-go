@@ -19,8 +19,8 @@ export default function Home() {
     setLoading(false);
   };
 
-  const [selectedModel, setSelectedModel] = useState('chatgpt');
-  const [openaiModel, setOpenaiModel] = useState('gpt-4');
+  // Use gpt-5-nano only (no model selection UI)
+  const [openaiModel, setOpenaiModel] = useState('gpt-5-nano');
 
   const callAPI = async () => {
     setLoading(true);
@@ -33,7 +33,8 @@ export default function Home() {
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ model: selectedModel, openaiModel })
+        // Always use OpenAI (gpt-5-nano) only
+        body: JSON.stringify({ model: 'chatgpt', openaiModel })
       });
       const data = await res.json();
 
@@ -94,26 +95,9 @@ export default function Home() {
       <p>逐步验证 API 配置和功能。默认优先使用 ChatGPT（如可用）。</p>
 
       <div style={{ marginBottom: '20px' }}>
-        <label style={{ marginRight: '10px' }}>
-          <strong>选择模型：</strong>
-        </label>
-        <select value={selectedModel} onChange={(e)=>setSelectedModel(e.target.value)} style={{ padding: '8px 10px', marginRight: '20px' }}>
-          <option value="chatgpt">ChatGPT（优先）</option>
-          <option value="deepseek">DeepSeek</option>
-        </select>
-        {selectedModel === 'chatgpt' && (
-          <>
-            <label style={{ marginLeft: '10px', marginRight: '10px' }}>
-              <strong>ChatGPT 模型：</strong>
-            </label>
-            <select value={openaiModel} onChange={(e)=>setOpenaiModel(e.target.value)} style={{ padding: '8px 10px', marginRight: '20px' }}>
-              <option value="gpt-5-nano">gpt-5-nano</option>
-              <option value="gpt-4">gpt-4</option>
-              <option value="gpt-4o">gpt-4o</option>
-              <option value="gpt-3.5-turbo">gpt-3.5-turbo</option>
-            </select>
-          </>
-        )}
+        <div style={{ display: 'inline-block', marginRight: '20px' }}>
+          <strong>使用模型：</strong> gpt-5-nano
+        </div>
 
         <button
           onClick={checkKey}
