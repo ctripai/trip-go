@@ -298,7 +298,7 @@ export default function Home() {
           >
             中止流式
           </button>
-        )
+        )}
       </div>
 
       {keyStatus && (
