@@ -46,6 +46,13 @@ export default function Home() {
         '2. 确保变量名完全匹配，大小写敏感',
         '3. 重新部署项目以应用新环境变量'
       ];
+    } else if (errorMsg.includes('Insufficient Balance')) {
+      return [
+        '1. 访问 https://platform.deepseek.com 登录账户',
+        '2. 检查账户余额，确保有足够的 credits',
+        '3. 如需充值，按照平台指引操作',
+        '4. 确认 API key 有效且未过期'
+      ];
     } else if (errorMsg.includes('API error')) {
       return [
         '1. 检查 DeepSeek API key 是否有效：访问 https://platform.deepseek.com',
@@ -62,7 +69,7 @@ export default function Home() {
     } else {
       return [
         '1. 检查浏览器控制台的错误信息',
-        '2. 确认 API 端点 /api/index 可访问',
+        '2. 确认 API 端点可访问',
         '3. 查看 Vercel 部署日志'
       ];
     }
