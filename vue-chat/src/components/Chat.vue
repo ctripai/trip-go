@@ -1,23 +1,6 @@
 <template>
   <div class="chat-page">
-    <aside :class="['sidebar', { open: sidebarOpen }]">
-      <div class="sidebar-inner">
-        <h2>Layla.</h2>
-        <p class="muted">嗨，我是 Layla！很高兴帮助你规划旅行。</p>
-        <button class="primary">创建一个新行程</button>
-
-        <div class="premium">
-          <p>升级订阅以解锁：</p>
-          <ul>
-            <li>无限次专属行程规划</li>
-            <li>一键下载并分享精美 PDF</li>
-            <li>挖掘隐藏宝藏景点</li>
-          </ul>
-          <button class="cta">开始 3 天免费试用</button>
-        </div>
-      </div>
-      <button class="sidebar-toggle" @click="sidebarOpen = !sidebarOpen">{{ sidebarOpen ? '收起' : '展开' }}</button>
-    </aside>
+    <Sidebar :open="sidebarOpen" @toggle="sidebarOpen = !sidebarOpen" />
 
     <main class="chat-area">
       <header class="chat-header">
@@ -28,20 +11,9 @@
         </div>
       </header>
 
-      <section ref="messagesRef" class="messages">
-        <div v-for="msg in messages" :key="msg.id" class="message" :class="msg.role">
-          <div class="avatar-small" :class="msg.role"></div>
-          <div class="bubble">{{ msg.text || (msg.streaming ? '...' : '') }}</div>
-        </div>
-      </section>
+      <MessageList :messages="messages" ref="messageListRef" />
 
-      <div class="composer">
-        <input v-model="input" @keydown.enter.prevent="sendMessage" placeholder="问任何事情..." />
-        <div class="composer-actions">
-          <button @click="sendMessage" class="send" :disabled="loading">发送</button>
-          <button v-if="streaming" @click="abortStream" class="abort">中止</button>
-        </div>
-      </div>
+      <Composer :loading="loading" :streaming="streaming" @send="onSend" @abort="abortStream" />
 
       <div v-if="error" class="error">{{ error }}</div>
     </main>
@@ -49,33 +21,33 @@
 </template>
 
 <script setup>
-import { ref, onMounted, nextTick } from 'vue'
+import { ref, nextTick } from 'vue'
+import Sidebar from './Sidebar.vue'
+import MessageList from './MessageList.vue'
+import Composer from './Composer.vue'
 
 const messages = ref([
   { id: 1, role: 'assistant', text: '嗨！我是 Layla，很高兴帮助你规划旅行。告诉我你的想法吧。' }
 ])
-const input = ref('')
 const loading = ref(false)
 const streaming = ref(false)
 const error = ref('')
 const sidebarOpen = ref(true)
-const messagesRef = ref(null)
+const messageListRef = ref(null)
 const abortController = ref(null)
 let idCounter = 2
 
 const scrollToBottom = () => {
   nextTick(() => {
-    if (messagesRef.value) messagesRef.value.scrollTop = messagesRef.value.scrollHeight
+    if (messageListRef.value && messageListRef.value.scrollToBottom) messageListRef.value.scrollToBottom()
   })
 }
 
 const appendMessage = (msg) => { messages.value.push(msg); scrollToBottom() }
 
-const sendMessage = async () => {
-  if (!input.value.trim()) return
-  const userMsg = { id: idCounter++, role: 'user', text: input.value.trim() }
+async function onSend(text) {
+  const userMsg = { id: idCounter++, role: 'user', text }
   appendMessage(userMsg)
-  input.value = ''
 
   const assistantId = idCounter++
   appendMessage({ id: assistantId, role: 'assistant', text: '', streaming: true })
@@ -177,28 +149,18 @@ const abortStream = () => {
 
 <style scoped>
 .chat-page { display:flex; min-height:100vh; }
-.sidebar { width:320px; background:white; padding:24px; box-sizing:border-box; position:relative; transition: transform .18s ease }
-.sidebar.open { transform: translateX(0) }
-.sidebar-toggle { position:absolute; right:-44px; top:20px; }
 .chat-area { flex:1; padding: 24px; display:flex; flex-direction:column; }
 .chat-header { display:flex; gap:12px; align-items:center }
-.messages { margin-top:18px; background:white; padding:16px; border-radius:8px; flex:1; overflow:auto }
 .message { display:flex; gap:10px; margin-bottom:12px }
 .message.user { flex-direction:row-reverse }
 .avatar-small { width:36px; height:36px; border-radius:50%; background:#e9d5ff }
 .message.user .avatar-small { background:#6f42c1 }
 .bubble { max-width:80%; padding:10px 14px; border-radius:12px; background:#f3e8ff }
 .message.user .bubble { background:#6f42c1; color:white }
-.composer { display:flex; gap:8px; align-items:center; margin-top:12px }
-.composer input { flex:1; padding:12px 14px; border-radius:20px; border:1px solid #e5e7eb }
-.send { background:#7c3aed; color:white; padding:8px 12px; border-radius:16px; border:none }
-.abort { background:#ef4444; color:white; padding:8px 12px; border-radius:16px; border:none }
 .error { margin-top:12px; padding:12px; background:#fff5f5; border:1px solid #fee2e2; border-radius:6px }
 
 @media (max-width: 900px) {
   .chat-page { flex-direction:column }
   .sidebar { width:100%; transform:none; }
-  .sidebar-toggle { display:block }
-  .messages { height:50vh }
 }
 </style>
