@@ -199,6 +199,8 @@ const abortStream = () => {
 .chat-page { display:flex; min-height:100vh; }
 .chat-area { flex:1; padding: 24px; display:flex; flex-direction:column; }
 .chat-header { display:flex; gap:12px; align-items:center }
+.main-content { display:flex; gap:20px; align-items:flex-start; }
+.left-col { flex:1; display:flex; flex-direction:column; }
 .message { display:flex; gap:10px; margin-bottom:12px }
 .message.user { flex-direction:row-reverse }
 .avatar-small { width:36px; height:36px; border-radius:50%; background:#e9d5ff }
@@ -210,5 +212,6 @@ const abortStream = () => {
 @media (max-width: 900px) {
   .chat-page { flex-direction:column }
   .sidebar { width:100%; transform:none; }
+  .main-content { flex-direction:column }
 }
 </style>
