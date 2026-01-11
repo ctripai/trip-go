@@ -37,7 +37,7 @@ export default async function handler(req, res) {
     });
 
     console.log('Response Status:', response.status);
-    console.log('Response Headers:', Object.fromEntries(response.headers.entries()));
+    console.log('Response Headers:', [...response.headers]);
 
     const responseText = await response.text();
     console.log('Response Body:', responseText);
