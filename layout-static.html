@@ -165,26 +165,21 @@
       flex: 1;
       display: flex;
       flex-direction: column;
-      background: white;
-      border-right: 1px solid #e5e7eb;
+      background: transparent;
+      border-right: none;
       overflow: hidden;
+      padding: 0;
     }
 
     .chat-header {
-      padding: 16px 24px;
-      border-bottom: 1px solid #e5e7eb;
+      padding: 12px 16px;
+      border-bottom: none;
       display: flex;
       gap: 12px;
       align-items: center;
     }
 
-    .chat-header .avatar {
-      width: 40px;
-      height: 40px;
-      border-radius: 50%;
-      background: #dbeafe;
-      flex-shrink: 0;
-    }
+    .chat-header .avatar { display: none; }
 
     .chat-header .info h3 {
       font-size: 16px;
@@ -222,87 +217,54 @@
       flex-direction: row-reverse;
     }
 
-    .message .avatar-small {
-      width: 32px;
-      height: 32px;
-      border-radius: 50%;
-      background: #e9d5ff;
-      flex-shrink: 0;
-    }
-
-    .message.user .avatar-small {
-      background: #7c3aed;
-    }
+    .message .avatar-small { display: none; }
+    .message.user .avatar-small { display: none; }
 
     .message .bubble {
       max-width: 70%;
-      padding: 10px 14px;
-      border-radius: 12px;
-      background: #f3e8ff;
+      padding: 6px 8px;
+      border-radius: 0;
+      background: transparent;
       font-size: 14px;
       line-height: 1.5;
-      color: #1f2937;
+      color: #111827;
       word-wrap: break-word;
     }
 
     .message.user .bubble {
-      background: #7c3aed;
-      color: white;
+      background: transparent;
+      color: #111827;
     }
 
     .composer {
-      padding: 16px 24px;
-      border-top: 1px solid #e5e7eb;
+      padding: 12px 16px;
+      border-top: none;
       display: flex;
       gap: 8px;
       align-items: center;
+      background: transparent;
     }
 
     .composer input {
       flex: 1;
-      padding: 10px 14px;
-      border: 1px solid #e5e7eb;
-      border-radius: 20px;
+      padding: 10px 12px;
+      border: 1px solid #e6e6e6;
+      border-radius: 8px;
       font-size: 14px;
       outline: none;
-      transition: border-color 0.2s;
+      background: transparent;
+      transition: border-color 0.15s;
     }
 
-    .composer input:focus {
-      border-color: #a78bfa;
-    }
-
-    .composer .btn-send {
-      background: #7c3aed;
-      color: white;
-      border: none;
-      padding: 8px 14px;
-      border-radius: 16px;
-      font-size: 13px;
-      cursor: pointer;
-      flex-shrink: 0;
-    }
-
-    .composer .btn-done {
-      background: #6b7280;
-      color: white;
-      border: none;
-      padding: 8px 14px;
-      border-radius: 16px;
-      font-size: 13px;
-      cursor: pointer;
-      flex-shrink: 0;
-    }
-
+    .composer .btn-send,
+    .composer .btn-done,
     .composer .btn-abort {
-      background: #ef4444;
-      color: white;
-      border: none;
-      padding: 8px 14px;
-      border-radius: 16px;
-      font-size: 13px;
+      background: transparent;
+      border: 1px solid transparent;
+      color: #111827;
+      padding: 8px 10px;
+      border-radius: 8px;
       cursor: pointer;
-      flex-shrink: 0;
     }
 
     /* ===== 响应式 ===== */
