@@ -4,6 +4,20 @@ export default function Home() {
   const [response, setResponse] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [keyStatus, setKeyStatus] = useState('');
+
+  const checkKey = async () => {
+    setLoading(true);
+    setKeyStatus('');
+    try {
+      const res = await fetch('/api/check-key');
+      const data = await res.json();
+      setKeyStatus(data.message);
+    } catch (err) {
+      setKeyStatus('❌ 检查失败：' + err.message);
+    }
+    setLoading(false);
+  };
 
   const callAPI = async () => {
     setLoading(true);
@@ -57,22 +71,53 @@ export default function Home() {
   return (
     <div style={{ padding: '20px', fontFamily: 'Arial, sans-serif', maxWidth: '600px', margin: '0 auto' }}>
       <h1>TripGo - DeepSeek API Demo</h1>
-      <p>点击按钮调用 DeepSeek API，测试是否正常工作。</p>
-      <button
-        onClick={callAPI}
-        disabled={loading}
-        style={{
-          padding: '10px 20px',
-          fontSize: '16px',
-          backgroundColor: loading ? '#ccc' : '#0070f3',
-          color: 'white',
-          border: 'none',
-          borderRadius: '5px',
-          cursor: loading ? 'not-allowed' : 'pointer'
-        }}
-      >
-        {loading ? '调用中...' : '调用 API'}
-      </button>
+      <p>逐步验证 API 配置和功能。</p>
+
+      <div style={{ marginBottom: '20px' }}>
+        <button
+          onClick={checkKey}
+          disabled={loading}
+          style={{
+            padding: '10px 20px',
+            fontSize: '16px',
+            backgroundColor: '#28a745',
+            color: 'white',
+            border: 'none',
+            borderRadius: '5px',
+            cursor: loading ? 'not-allowed' : 'pointer',
+            marginRight: '10px'
+          }}
+        >
+          {loading ? '检查中...' : '检查 API Key'}
+        </button>
+        <button
+          onClick={callAPI}
+          disabled={loading}
+          style={{
+            padding: '10px 20px',
+            fontSize: '16px',
+            backgroundColor: loading ? '#ccc' : '#0070f3',
+            color: 'white',
+            border: 'none',
+            borderRadius: '5px',
+            cursor: loading ? 'not-allowed' : 'pointer'
+          }}
+        >
+          {loading ? '调用中...' : '调用 API'}
+        </button>
+      </div>
+
+      {keyStatus && (
+        <div style={{
+          marginTop: '20px',
+          padding: '15px',
+          backgroundColor: keyStatus.includes('✅') ? '#e8f5e8' : '#ffebee',
+          border: `1px solid ${keyStatus.includes('✅') ? '#4caf50' : '#f44336'}`,
+          borderRadius: '5px'
+        }}>
+          <p>{keyStatus}</p>
+        </div>
+      )}
 
       {response && (
         <div style={{ marginTop: '20px', padding: '15px', backgroundColor: '#e8f5e8', border: '1px solid #4caf50', borderRadius: '5px' }}>
