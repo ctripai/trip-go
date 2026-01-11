@@ -4,7 +4,7 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  const apiKey = 'sk-4fd7e0509a544d8aa1a00f600efb3c0d'; // Temporarily hardcoded for testing
+  const apiKey = process.env.DEEPSEEK_API_KEY;
   console.log('API Key present:', !!apiKey);
   if (!apiKey) {
     return res.status(500).json({ error: 'DEEPSEEK_API_KEY not set' });
