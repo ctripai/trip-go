@@ -18,9 +18,21 @@
       overflow: hidden;
     }
 
+    /* Top site header */
+    .site-header {
+      height: 64px;
+      padding: 12px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: transparent;
+      border-bottom: 1px solid rgba(0,0,0,0.03);
+    }
+    .logo { font-weight:700; font-size:20px; color:#111827 }
+
     .container {
       display: flex;
-      height: 100vh;
+      height: calc(100vh - 64px);
       gap: 0;
     }
 
@@ -293,6 +305,9 @@
   </style>
 </head>
 <body>
+<header class="site-header">
+  <div class="logo">Layla.</div>
+</header>
 
 <div class="container">
   <!-- 左侧：聊天主区域 -->
@@ -326,7 +341,6 @@
 
   <!-- 右侧 Sidebar -->
   <aside class="sidebar">
-    <h2>Layla.</h2>
     <p class="subtitle">嗨，我是 Layla！很高兴帮助你规划旅行。</p>
   </aside>
 </div>
