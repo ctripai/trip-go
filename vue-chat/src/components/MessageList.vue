@@ -18,5 +18,5 @@ defineExpose({
 </script>
 
 <style scoped>
-.messages { margin-top:18px; background:white; padding:16px; border-radius:8px; flex:1; overflow:auto }
+.messages { flex:1; overflow:auto }
 </style>

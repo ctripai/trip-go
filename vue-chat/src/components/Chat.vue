@@ -1,45 +1,59 @@
 <template>
   <div class="chat-page">
-    <Sidebar :open="sidebarOpen" @toggle="sidebarOpen = !sidebarOpen" />
-
-    <main class="chat-area">
-      <header class="chat-header">
-        <div class="avatar"><img src="/avatar.png" alt="avatar" /></div>
-        <div>
-          <h3>正在收集信息以规划你的行程...</h3>
-          <p class="muted">分享你的旅行想法 ♡</p>
+    <header class="page-header">
+      <div class="header-container">
+        <div class="logo-container">
+          <div class="logo">L</div>
+          <div class="logo-text">Layla.</div>
         </div>
-      </header>
-
-      <div class="main-content">
-      <div class="left-col">
-        <MessageList :messages="messages" ref="messageListRef" />
-
-        <Composer :loading="loading" :streaming="streaming" @send="onSend" @abort="abortStream" @done="onDone" />
-
+        
+        <div class="user-profile">
+          <div class="user-avatar"></div>
+          <span>旅行者</span>
+        </div>
+      </div>
+    </header>
+    
+    <div class="container">
+      <!-- 左侧聊天区域 -->
+      <div class="chat-container">
+        <div class="chat-messages">
+          <MessageList :messages="messages" ref="messageListRef" />
+        </div>
+        
+        <Composer :loading="loading" :streaming="streaming" @send="onSend" @abort="abortStream" />
+        
         <div v-if="error" class="error">{{ error }}</div>
       </div>
-
-      <Itinerary :plan="itinerary" :loading="generating" @regenerate="generatePlanFromMessages" />
+      
+      <!-- 右侧规划展示区域 -->
+      <div class="plan-container">
+        <div class="plan-header">
+          <h2>正在收集信息以规划你的行程...</h2>
+        </div>
+        
+        <Itinerary :plan="itinerary" :loading="generating" @regenerate="generatePlanFromMessages" />
+      </div>
     </div>
-    </main>
+    
+    <footer>
+      <p>© 我根据所附的浏览器的建议，<a href="#" class="feedback-link">点击分享任何反馈</a>。</p>
+    </footer>
   </div>
 </template>
 
 <script setup>
 import { ref, nextTick } from 'vue'
-import Sidebar from './Sidebar.vue'
 import MessageList from './MessageList.vue'
 import Composer from './Composer.vue'
 import Itinerary from './Itinerary.vue'
 
 const messages = ref([
-  { id: 1, role: 'assistant', text: '嗨！我是 Layla，很高兴帮助你规划旅行。告诉我你的想法吧。' }
+  { id: 1, role: 'assistant', text: '你好！我是Layla，你的AI旅行助手。请告诉我你的旅行想法，比如目的地、旅行时间、预算和兴趣，我将为你量身打造完美的行程。' }
 ])
 const loading = ref(false)
 const streaming = ref(false)
 const error = ref('')
-const sidebarOpen = ref(true)
 const messageListRef = ref(null)
 const abortController = ref(null)
 let idCounter = 2
@@ -196,28 +210,194 @@ const abortStream = () => {
 </script>
 
 <style scoped>
-.chat-page { display:flex; min-height:100vh; }
-.chat-area { flex:1; padding: 24px; display:flex; flex-direction:column; }
-.chat-header { display:flex; gap:12px; align-items:center }
-.main-content { display:flex; gap:20px; align-items:flex-start; width:100%; }
-.left-col { flex:1 1 auto; min-width:0; display:flex; flex-direction:column; }
-/* Force itinerary to the right and fixed width */
-.itinerary { flex: 0 0 420px; width:420px; background:white; padding:18px; box-sizing:border-box; border-left:1px solid #e5e7eb }
-/* Ensure messages fill left column */
-.left-col .messages { width:100%; }
-.left-col .composer { width:100%; }
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+}
 
-.message { display:flex; gap:10px; margin-bottom:12px }
-.message.user { flex-direction:row-reverse }
-.avatar-small { width:36px; height:36px; border-radius:50%; background:#e9d5ff }
-.message.user .avatar-small { background:#6f42c1 }
-.bubble { max-width:80%; padding:10px 14px; border-radius:12px; background:#f3e8ff }
-.message.user .bubble { background:#6f42c1; color:white }
-.error { margin-top:12px; padding:12px; background:#fff5f5; border:1px solid #fee2e2; border-radius:6px }
+.chat-page {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background-color: #f5f7fa;
+  color: #333;
+  line-height: 1.6;
+}
 
+/* Header样式 */
+.page-header {
+  background-color: white;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+  padding: 15px 0;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.header-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 20px;
+}
+
+.logo-container {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.logo {
+  width: 50px;
+  height: 50px;
+  border-radius: 12px;
+  background-image: url('https://picsum.photos/seed/layla-logo/100/100');
+  background-size: cover;
+  background-position: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: bold;
+  font-size: 22px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.logo-text {
+  font-size: 28px;
+  font-weight: 700;
+  background: linear-gradient(135deg, #2d7ff9 0%, #7b61ff 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.user-profile {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #666;
+  font-weight: 500;
+}
+
+.user-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background-image: url('https://picsum.photos/seed/user-avatar/80/80');
+  background-size: cover;
+  background-position: center;
+}
+
+.container {
+  display: flex;
+  max-width: 1200px;
+  margin: 30px auto;
+  flex: 1;
+  gap: 30px;
+  padding: 0 20px;
+}
+
+/* 左侧聊天区域样式 */
+.chat-container {
+  flex: 1;
+  background-color: white;
+  border-radius: 16px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.chat-messages {
+  flex: 1;
+  padding: 30px;
+  overflow-y: auto;
+  max-height: 500px;
+  display: flex;
+  flex-direction: column;
+}
+
+/* 右侧规划区域样式 */
+.plan-container {
+  flex: 1;
+  background-color: white;
+  border-radius: 16px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.plan-header {
+  background-color: #7b61ff;
+  color: white;
+  padding: 24px 30px;
+}
+
+.plan-header h2 {
+  font-size: 24px;
+  margin-bottom: 8px;
+}
+
+.error {
+  margin: 12px 30px;
+  padding: 12px;
+  background: #fff5f5;
+  border: 1px solid #fee2e2;
+  border-radius: 6px;
+  color: #dc2626;
+}
+
+/* 页脚样式 */
+footer {
+  text-align: center;
+  margin-top: 20px;
+  padding: 25px;
+  color: #888;
+  font-size: 14px;
+  border-top: 1px solid #eee;
+  background-color: white;
+}
+
+.feedback-link {
+  color: #2d7ff9;
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.feedback-link:hover {
+  text-decoration: underline;
+}
+
+/* 响应式设计 */
 @media (max-width: 900px) {
-  .chat-page { flex-direction:column }
-  .sidebar { width:100%; transform:none; }
-  .main-content { flex-direction:column }
+  .container {
+    flex-direction: column;
+  }
+  
+  .chat-messages {
+    max-height: 400px;
+  }
+  
+  .header-container {
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 15px;
+  }
+  
+  .logo-text {
+    font-size: 24px;
+  }
+}
+
+@media (max-width: 600px) {
+  .user-profile {
+    display: none;
+  }
 }
 </style>

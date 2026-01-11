@@ -1,19 +1,23 @@
 <template>
-  <aside class="itinerary">
-    <header class="it-header">
-      <h3>旅行行程计划</h3>
-      <div class="actions">
-        <button @click="$emit('regenerate')" class="regen">重新生成</button>
-      </div>
-    </header>
-
+  <div class="plan-content">
     <div v-if="loading" class="loading">正在生成，请稍候…</div>
-    <div v-else-if="!plan" class="empty">尚未生成行程，聊天结束后或点击“完成”生成。</div>
+    <div v-else-if="!plan" class="plan-placeholder">
+      <div class="plan-placeholder-icon">🗺️</div>
+      <h3>旅行规划等待生成</h3>
+      <p>点击左侧"发送"按钮，我将根据我们的对话为您生成详细的旅行规划。</p>
+      <p>您的规划将包括：</p>
+      <p>• 每日行程安排</p>
+      <p>• 酒店和餐饮推荐</p>
+      <p>• 预算分配建议</p>
+      <p>• 当地体验和文化活动</p>
+      <button @click="$emit('regenerate')" class="btn">生成行程</button>
+    </div>
 
     <div v-else class="plan">
       <pre>{{ plan }}</pre>
+      <button @click="$emit('regenerate')" class="btn">修改此计划，让它更像你自己</button>
     </div>
-  </aside>
+  </div>
 </template>
 
 <script setup>
@@ -21,11 +25,73 @@ const props = defineProps({ plan: { type: String, default: '' }, loading: { type
 </script>
 
 <style scoped>
-.itinerary { width: 420px; background:white; padding:18px; box-sizing:border-box; border-left:1px solid #e5e7eb }
-.it-header { display:flex; justify-content:space-between; align-items:center }
-.regen { background:#7c3aed;color:white;padding:6px 10px;border-radius:8px;border:none }
-.loading { color:#6b7280; padding:12px }
-.empty { color:#9ca3af; padding:12px }
-.plan { white-space:pre-wrap; font-family: Inter, monospace; margin-top:12px }
-@media (max-width: 900px) { .itinerary { width:100%; order:2 } }
+.plan-content {
+  flex: 1;
+  padding: 30px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: #888;
+}
+
+.plan-placeholder {
+  text-align: center;
+  max-width: 400px;
+}
+
+.plan-placeholder-icon {
+  font-size: 60px;
+  margin-bottom: 20px;
+  color: #ddd;
+}
+
+.plan-placeholder h3 {
+  font-size: 22px;
+  margin-bottom: 12px;
+  color: #666;
+}
+
+.plan-placeholder p {
+  margin-bottom: 8px;
+  line-height: 1.6;
+}
+
+.btn {
+  background-color: #7b61ff;
+  color: white;
+  border: none;
+  border-radius: 12px;
+  padding: 16px 28px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  margin-top: 25px;
+  width: 100%;
+  transition: background-color 0.3s;
+}
+
+.btn:hover {
+  background-color: #6d52e8;
+}
+
+.loading {
+  color: #6b7280;
+  padding: 12px;
+}
+
+.plan {
+  white-space: pre-wrap;
+  font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+  margin-top: 12px;
+  width: 100%;
+  text-align: left;
+}
+
+@media (max-width: 900px) {
+  .plan-content {
+    padding: 20px;
+  }
+}
 </style>

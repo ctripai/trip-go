@@ -4,10 +4,11 @@ import { resolve } from 'path'
 
 // Build into Next.js public/chat so it is served at /chat
 export default defineConfig({
-  base: '/chat/',
+  base: '',
   plugins: [vue()],
   build: {
     outDir: resolve(__dirname, '../public/chat'),
-    emptyOutDir: true
+    emptyOutDir: true,
+    base: '/chat/'
   }
 })

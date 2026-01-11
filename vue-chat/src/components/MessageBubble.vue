@@ -1,7 +1,9 @@
 <template>
   <div :class="['message', msg.role]">
-    <div class="avatar-small" :class="msg.role"></div>
-    <div class="bubble">{{ msg.text || (msg.streaming ? '...' : '') }}</div>
+    <div class="avatar" :class="msg.role === 'user' ? 'avatar-user' : 'avatar-ai'">
+      {{ msg.role === 'user' ? '你' : 'L' }}
+    </div>
+    <div class="message-content">{{ msg.text || (msg.streaming ? '...' : '') }}</div>
   </div>
 </template>
 
@@ -10,10 +12,54 @@ const props = defineProps({ msg: Object })
 </script>
 
 <style scoped>
-.message { display:flex; gap:10px; margin-bottom:12px; align-items:flex-start }
-.message.user { flex-direction:row-reverse }
-.avatar-small { width:36px; height:36px; border-radius:50%; background:#e9d5ff }
-.message.user .avatar-small { background:#6f42c1 }
-.bubble { max-width:80%; padding:10px 14px; border-radius:12px; background:#f3e8ff; white-space:pre-wrap }
-.message.user .bubble { background:#6f42c1; color:white }
+.message {
+  margin-bottom: 24px;
+  display: flex;
+  align-items: flex-start;
+}
+
+.message.user {
+  flex-direction: row-reverse;
+}
+
+.avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  margin: 0 12px;
+}
+
+.avatar-ai {
+  background-color: #e6f0ff;
+  color: #2d7ff9;
+}
+
+.avatar-user {
+  background-color: #f0f5ff;
+  color: #7b61ff;
+}
+
+.message-content {
+  max-width: 70%;
+  padding: 16px 20px;
+  border-radius: 18px;
+  line-height: 1.5;
+  white-space: pre-wrap;
+}
+
+.message:not(.user) .message-content {
+  background-color: #f5f8ff;
+  border-top-left-radius: 4px;
+  color: #333;
+}
+
+.message.user .message-content {
+  background-color: #2d7ff9;
+  color: white;
+  border-top-right-radius: 4px;
+}
 </style>
