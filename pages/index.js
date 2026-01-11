@@ -19,17 +19,26 @@ export default function Home() {
     setLoading(false);
   };
 
+  const [selectedModel, setSelectedModel] = useState('chatgpt');
+  const [openaiModel, setOpenaiModel] = useState('gpt-4');
+
   const callAPI = async () => {
     setLoading(true);
     setResponse('');
     setError('');
 
     try {
-      const res = await fetch('/api/deepseek');
+      const res = await fetch('/api/deepseek', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ model: selectedModel, openaiModel })
+      });
       const data = await res.json();
 
       if (res.ok) {
-        setResponse(data.response);
+        setResponse((prev)=> `（来源: ${data.modelUsed || 'deepseek'}） ` + data.response + (data.fallbackReason ? `\n\n回退原因：${data.fallbackReason}` : ''));
       } else {
         setError(data.error || '未知错误');
       }
@@ -45,8 +54,12 @@ export default function Home() {
         '1. 检查 Vercel 环境变量是否正确设置：DEEPSEEK_API_KEY',
         '2. 确保变量名完全匹配，大小写敏感',
         '3. 重新部署项目以应用新环境变量'
-      ];
-    } else if (errorMsg.includes('Insufficient Balance')) {
+      ];    } else if (errorMsg.includes('OPENAI_API_KEY not set')) {
+      return [
+        '1. 如果要使用 ChatGPT，请设置 Vercel 环境变量：OPENAI_API_KEY',
+        '2. 可选地设置 OPENAI_MODEL（如 gpt-4）以指定模型',
+        '3. 重新部署项目以应用新环境变量'
+      ];    } else if (errorMsg.includes('Insufficient Balance')) {
       return [
         '1. 访问 https://platform.deepseek.com 登录账户',
         '2. 检查账户余额，确保有足够的 credits',
@@ -78,9 +91,29 @@ export default function Home() {
   return (
     <div style={{ padding: '20px', fontFamily: 'Arial, sans-serif', maxWidth: '600px', margin: '0 auto' }}>
       <h1>TripGo - DeepSeek API Demo</h1>
-      <p>逐步验证 API 配置和功能。</p>
+      <p>逐步验证 API 配置和功能。默认优先使用 ChatGPT（如可用）。</p>
 
       <div style={{ marginBottom: '20px' }}>
+        <label style={{ marginRight: '10px' }}>
+          <strong>选择模型：</strong>
+        </label>
+        <select value={selectedModel} onChange={(e)=>setSelectedModel(e.target.value)} style={{ padding: '8px 10px', marginRight: '20px' }}>
+          <option value="chatgpt">ChatGPT（优先）</option>
+          <option value="deepseek">DeepSeek</option>
+        </select>
+        {selectedModel === 'chatgpt' && (
+          <>
+            <label style={{ marginLeft: '10px', marginRight: '10px' }}>
+              <strong>ChatGPT 模型：</strong>
+            </label>
+            <select value={openaiModel} onChange={(e)=>setOpenaiModel(e.target.value)} style={{ padding: '8px 10px', marginRight: '20px' }}>
+              <option value="gpt-4">gpt-4</option>
+              <option value="gpt-4o">gpt-4o</option>
+              <option value="gpt-3.5-turbo">gpt-3.5-turbo</option>
+            </select>
+          </>
+        )}
+
         <button
           onClick={checkKey}
           disabled={loading}

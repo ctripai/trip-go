@@ -18,9 +18,10 @@ TripGo AI 旅行规划项目，帮助现代“懒人”们轻松开启每一次�
 ### 部署步骤
 1. 登录 Vercel: `vercel login`
 2. 部署项目: `vercel`
-3. 设置环境变量: `vercel env add DEEPSEEK_API_KEY` 并输入你的 API 密钥。
-4. 重新部署以应用环境变量: `vercel --prod`
+3. 设置环境变量: `vercel env add DEEPSEEK_API_KEY` 并输入你的 DeepSeek API 密钥。
+4. （可选）如需使用 ChatGPT 大模型，添加 OpenAI Key: `vercel env add OPENAI_API_KEY`，并可通过 `vercel env add OPENAI_MODEL` 设置默认模型（例如 `gpt-4`）。
+5. 重新部署以应用环境变量: `vercel --prod`
 
 ### 测试 API
-- 部署后，访问 `https://your-vercel-url.vercel.app/` 查看前端界面。
-- API 端点: `https://your-vercel-url.vercel.app/api/index` 返回 DeepSeek 的响应。
+- 部署后，访问 `https://your-vercel-url.vercel.app/` 查看前端界面，页面上可选择模型并指定 ChatGPT 子模型（例如 `gpt-4` / `gpt-4o` / `gpt-3.5-turbo`）。
+- API 端点: `https://your-vercel-url.vercel.app/api/deepseek` 返回模型响应（支持 `model` 与 `openaiModel` 参数）。

@@ -3,10 +3,19 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  const apiKey = process.env.DEEPSEEK_API_KEY;
-  if (apiKey && apiKey.trim() !== '') {
-    res.status(200).json({ status: 'success', message: '✅ API Key 已正确配置' });
+  const deepseekKey = process.env.DEEPSEEK_API_KEY;
+  const openaiKey = process.env.OPENAI_API_KEY;
+  const parts = [];
+  if (deepseekKey && deepseekKey.trim() !== '') {
+    parts.push('✅ DeepSeek Key 已配置');
   } else {
-    res.status(200).json({ status: 'error', message: '❌ API Key 未设置或为空' });
+    parts.push('❌ DeepSeek Key 未设置或为空');
   }
+  if (openaiKey && openaiKey.trim() !== '') {
+    parts.push('✅ OpenAI Key 已配置');
+  } else {
+    parts.push('❌ OpenAI Key 未设置或为空');
+  }
+
+  res.status(200).json({ status: 'ok', message: parts.join(' | ') });
 }
