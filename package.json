@@ -6,7 +6,10 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "dev:vue": "cd vue-chat && npm run dev",
+    "build:vue": "cd vue-chat && npm ci && npm run build",
+    "preview:vue": "cd vue-chat && npm run preview"
   },
   "dependencies": {
     "next": "14.0.4",
