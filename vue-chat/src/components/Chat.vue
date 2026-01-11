@@ -11,11 +11,17 @@
         </div>
       </header>
 
-      <MessageList :messages="messages" ref="messageListRef" />
+      <div class="main-content">
+      <div class="left-col">
+        <MessageList :messages="messages" ref="messageListRef" />
 
-      <Composer :loading="loading" :streaming="streaming" @send="onSend" @abort="abortStream" />
+        <Composer :loading="loading" :streaming="streaming" @send="onSend" @abort="abortStream" @done="onDone" />
 
-      <div v-if="error" class="error">{{ error }}</div>
+        <div v-if="error" class="error">{{ error }}</div>
+      </div>
+
+      <Itinerary :plan="itinerary" :loading="generating" @regenerate="generatePlanFromMessages" />
+    </div>
     </main>
   </div>
 </template>
@@ -25,6 +31,7 @@ import { ref, nextTick } from 'vue'
 import Sidebar from './Sidebar.vue'
 import MessageList from './MessageList.vue'
 import Composer from './Composer.vue'
+import Itinerary from './Itinerary.vue'
 
 const messages = ref([
   { id: 1, role: 'assistant', text: '嗨！我是 Layla，很高兴帮助你规划旅行。告诉我你的想法吧。' }
@@ -44,6 +51,38 @@ const scrollToBottom = () => {
 }
 
 const appendMessage = (msg) => { messages.value.push(msg); scrollToBottom() }
+
+// Plan / itinerary state
+const itinerary = ref(null)
+const generating = ref(false)
+let generatedOnce = false
+
+async function generatePlanFromMessages() {
+  // Avoid duplicate generation
+  if (generating.value) return
+  generating.value = true
+  itinerary.value = null
+  const payload = messages.value.map(m => ({ role: m.role, content: m.text || '' }))
+
+  try {
+    const res = await fetch('/api/generate', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ messages: payload }) })
+    const data = await res.json()
+    if (res.ok) {
+      itinerary.value = data.plan || data.response || JSON.stringify(data, null, 2)
+      generatedOnce = true
+    } else {
+      error.value = data.errorFriendly || data.error || '生成行程失败'
+    }
+  } catch (err) {
+    error.value = err.message || '生成行程出错'
+  } finally {
+    generating.value = false
+  }
+}
+
+function onDone() {
+  generatePlanFromMessages()
+}
 
 async function onSend(text) {
   const userMsg = { id: idCounter++, role: 'user', text }
@@ -117,6 +156,15 @@ async function onSend(text) {
     // finalize
     const idx = messages.value.findIndex(m => m.id === assistantId)
     if (idx >= 0) messages.value[idx].streaming = false
+
+    // Auto-detect 'done' or 'enough' phrases to generate itinerary
+    try {
+      const finalText = (idx >= 0 ? (messages.value[idx].text || '') : '').toLowerCase()
+      const doneRe = /(已收集|收集完|收集完成|足够|完成|可以开始|done|enough)/i
+      if (!generatedOnce && doneRe.test(finalText)) {
+        generatePlanFromMessages()
+      }
+    } catch (e) {}
 
   } catch (err) {
     if (err.name === 'AbortError') error.value = '已取消流式'

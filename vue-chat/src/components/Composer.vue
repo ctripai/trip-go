@@ -3,6 +3,7 @@
     <input v-model="value" @keydown.enter.prevent="onSend" :placeholder="placeholder" />
     <div class="composer-actions">
       <button @click="onSend" class="send" :disabled="loading">{{ sendText }}</button>
+      <button @click="$emit('done')" class="done">完成</button>
       <button v-if="streaming" @click="$emit('abort')" class="abort">中止</button>
     </div>
   </div>
