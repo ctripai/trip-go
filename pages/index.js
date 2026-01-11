@@ -51,6 +51,90 @@ export default function Home() {
     setLoading(false);
   };
 
+  // New streaming call that consumes the Edge streaming endpoint
+  const streamAPI = async () => {
+    setLoading(true);
+    setResponse('');
+    setError('');
+    setStreaming(true);
+
+    try {
+      const res = await fetch('/api/stream', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ openaiModel }),
+      });
+
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        setError(data.errorFriendly || data.error || '流式请求失败');
+        setStreaming(false);
+        setLoading(false);
+        return;
+      }
+
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      let done = false;
+      let accumulated = '';
+
+      while (!done) {
+        const { value, done: doneReading } = await reader.read();
+        if (doneReading) break;
+        const chunk = decoder.decode(value);
+        // The Responses API streams SSE-like 'data: ...' chunks; handle both SSE and raw text
+        const lines = chunk.split(/\r?\n/).filter(Boolean);
+        for (const line of lines) {
+          if (line.startsWith('data: ')) {
+            const payload = line.slice(6).trim();
+            if (payload === '[DONE]') {
+              done = true;
+              break;
+            }
+            try {
+              const parsed = JSON.parse(payload);
+              // Responses API may contain `output_text` or output array
+              if (parsed.output_text) {
+                accumulated += parsed.output_text;
+              } else if (Array.isArray(parsed.output) && parsed.output.length) {
+                // try to extract text chunks
+                parsed.output.forEach((o) => {
+                  if (typeof o === 'string') accumulated += o;
+                  else if (o.content) accumulated += (o.content.map(c => c.text || '').join(''));
+                });
+              } else if (parsed.choices && parsed.choices[0]?.delta?.content) {
+                accumulated += parsed.choices[0].delta.content;
+              } else {
+                accumulated += payload;
+              }
+            } catch {
+              accumulated += payload;
+            }
+          } else {
+            accumulated += line;
+          }
+        }
+        setResponse(`（来源: openai） ${accumulated}`);
+      }
+
+      setStreaming(false);
+      setLoading(false);
+    } catch (err) {
+      setStreaming(false);
+      setLoading(false);
+      setError('流式调用失败：' + err.message + '；尝试回退至 DeepSeek...');
+      // Try fallback to non-streaming DeepSeek
+      try {
+        const res2 = await fetch('/api/deepseek', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ model: 'deepseek' }) });
+        const data2 = await res2.json();
+        if (res2.ok) setResponse(`（来源: ${data2.modelUsed || 'deepseek'}） ` + data2.response);
+        else setError(data2.error || '回退 DeepSeek 失败');
+      } catch (er) {
+        setError('回退失败：' + er.message);
+      }
+    }
+  };
+
   const getTroubleshootingSteps = (errorMsg) => {
     if (errorMsg.includes('DEEPSEEK_API_KEY not set')) {
       return [
@@ -134,10 +218,26 @@ export default function Home() {
             color: 'white',
             border: 'none',
             borderRadius: '5px',
-            cursor: loading ? 'not-allowed' : 'pointer'
+            cursor: loading ? 'not-allowed' : 'pointer',
+            marginRight: '10px'
           }}
         >
           {loading ? '调用中...' : '调用 API'}
+        </button>
+        <button
+          onClick={streamAPI}
+          disabled={loading}
+          style={{
+            padding: '10px 20px',
+            fontSize: '16px',
+            backgroundColor: loading ? '#ccc' : '#6f42c1',
+            color: 'white',
+            border: 'none',
+            borderRadius: '5px',
+            cursor: loading ? 'not-allowed' : 'pointer'
+          }}
+        >
+          {loading && streaming ? '流式中...' : '调用 API（流式）'}
         </button>
       </div>
 

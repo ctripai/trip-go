@@ -24,4 +24,7 @@ TripGo AI 旅行规划项目，帮助现代“懒人”们轻松开启每一次�
 
 ### 测试 API
 - 部署后，访问 `https://your-vercel-url.vercel.app/` 查看前端界面，页面上使用默认 OpenAI 模型 `gpt-5-nano`。
+- 流式支持：新增 `/api/stream`（Edge Runtime），用于将 OpenAI Responses API 的流式输出原样转发给浏览器以实现逐字显示（需在 Vercel 上部署 Edge 函数，确保设置 `OPENAI_API_KEY`）。
+
+注意：Edge 路由使用 `export const config = { runtime: 'edge' }`，并在浏览器端通过 `fetch` 读取 `response.body` 的 ReadableStream 来呈现流式输出。
 - API 端点: `https://your-vercel-url.vercel.app/api/deepseek` 返回模型响应（支持 `model` 与 `openaiModel` 参数）。
