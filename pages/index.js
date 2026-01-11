@@ -224,6 +224,7 @@ export default function Home() {
   return (
     <div style={{ padding: '20px', fontFamily: 'Arial, sans-serif', maxWidth: '600px', margin: '0 auto' }}>
       <h1>TripGo - DeepSeek API Demo</h1>
+      <p><a href="/chat">打开 AI 聊天页面</a></p>
       <p>逐步验证 API 配置和功能。默认优先使用 ChatGPT（如可用）。</p>
 
       <div style={{ marginBottom: '20px' }}>
