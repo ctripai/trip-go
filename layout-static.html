@@ -72,6 +72,32 @@
       margin-bottom: 24px;
     }
 
+    /* Sidebar header block (moved from chat header) */
+    .sidebar .sidebar-header {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+      padding: 18px;
+      background: #f6eefd;
+      border-radius: 10px;
+      margin-bottom: 18px;
+    }
+    .sidebar .sidebar-header .avatar {
+      width: 72px;
+      height: 72px;
+      border-radius: 50%;
+      background: #dbeafe;
+      flex-shrink: 0;
+    }
+    .sidebar .sidebar-header h3 {
+      font-size: 16px;
+      font-weight: 700;
+      color: #111827;
+      text-align: center;
+      margin: 0;
+    }
+
     .sidebar .premium {
       background: #f3e8ff;
       padding: 16px;
@@ -315,12 +341,6 @@
     <div class="main-content">
       <!-- 聊天区 -->
       <section class="chat-section">
-        <div class="chat-header">
-          <div class="avatar"></div>
-          <div class="info">
-            <h3>正在收集信息以规划你的行程...</h3>
-          </div>
-        </div>
 
         <div class="messages">
           <div class="message assistant">
@@ -340,6 +360,10 @@
 
   <!-- 右侧 Sidebar -->
   <aside class="sidebar">
+    <div class="sidebar-header">
+      <div class="avatar"></div>
+      <h3>正在收集信息以规划你的行程...</h3>
+    </div>
   </aside>
 </div>
 
