@@ -140,9 +140,12 @@
       margin-top: 12px;
     }
 
-    /* ===== 右侧主区域 ===== */
+    /* ===== 中间主区域 (聊天) ===== */
     .main {
-      flex: 1;
+      /* take half the width */
+      flex: 1 1 50%;
+      width: 50%;
+      min-width: 0;
       display: flex;
       flex-direction: row;
       overflow: hidden;
@@ -316,19 +319,17 @@
 
       .sidebar {
         width: 100%;
-        border-right: none;
+        border-left: none;
         border-bottom: 1px solid #e5e7eb;
-        max-height: 150px;
+        max-height: 180px;
+      }
+
+      .main {
+        width: 100%;
       }
 
       .main-content {
         flex-direction: column;
-      }
-
-      .itinerary-section {
-        width: 100%;
-        border-left: none;
-        border-top: 1px solid #e5e7eb;
       }
     }
   </style>
