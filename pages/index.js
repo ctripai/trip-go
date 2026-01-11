@@ -41,7 +41,9 @@ export default function Home() {
       if (res.ok) {
         setResponse((prev)=> `（来源: ${data.modelUsed || 'deepseek'}） ` + data.response + (data.fallbackReason ? `\n\n回退原因：${data.fallbackReason}` : ''));
       } else {
-        setError(data.error || '未知错误');
+        // Prefer friendly error if provided by server
+        const friendly = data.errorFriendly || data.error || '未知错误，请稍后重试';
+        setError(friendly);
       }
     } catch (err) {
       setError('网络错误：' + err.message);
@@ -58,8 +60,15 @@ export default function Home() {
       ];    } else if (errorMsg.includes('OPENAI_API_KEY not set')) {
       return [
         '1. 如果要使用 ChatGPT，请设置 Vercel 环境变量：OPENAI_API_KEY',
-        '2. 可选地设置 OPENAI_MODEL（如 gpt-4）以指定模型',
+        '2. 可选地设置 OPENAI_MODEL（如 gpt-5-nano 或 gpt-3.5-turbo）以指定模型',
         '3. 重新部署项目以应用新环境变量'
+      ];
+    } else if (errorMsg.includes('我们暂时无法生成回复') || errorMsg.includes('OpenAI failed') || errorMsg.includes('DeepSeek failed')) {
+      return [
+        '1. 检查 OPENAI_API_KEY 是否正确配置且有权限访问所选模型（gpt-5-nano）',
+        '2. 检查 DEEPSEEK_API_KEY 是否正确配置，以便在 OpenAI 失败时回退',
+        '3. 查看服务器日志以获取完整错误信息',
+        '4. 稍后重试或联系管理员'
       ];    } else if (errorMsg.includes('Insufficient Balance')) {
       return [
         '1. 访问 https://platform.deepseek.com 登录账户',

@@ -93,17 +93,41 @@ export default async function handler(req, res) {
   }
 
   try {
-    // If user selected ChatGPT explicitly, require OpenAI key and do NOT fallback
-    if (selectedModel === 'chatgpt') {
-      if (!openaiKey) {
-        return res.status(500).json({ error: 'OPENAI_API_KEY not set' });
+    // If user selected ChatGPT (auto behavior): try OpenAI first, then DeepSeek as fallback
+    if (selectedModel === 'chatgpt' || selectedModel === 'auto') {
+      let openaiErrMsg = null;
+      // Try OpenAI if key exists
+      if (openaiKey) {
+        try {
+          const message = await callOpenAI();
+          return res.status(200).json({ response: message, modelUsed: 'openai' });
+        } catch (err) {
+          openaiErrMsg = err.message || String(err);
+        }
+      } else {
+        openaiErrMsg = 'OPENAI_API_KEY not set';
       }
-      try {
-        const message = await callOpenAI();
-        return res.status(200).json({ response: message, modelUsed: 'openai' });
-      } catch (err) {
-        return res.status(500).json({ error: err.message });
+
+      // OpenAI failed or not available -> try DeepSeek if key exists
+      if (deepseekKey) {
+        try {
+          const message = await callDeepSeek();
+          return res.status(200).json({ response: message, modelUsed: 'deepseek', fallbackReason: openaiErrMsg });
+        } catch (dsErr) {
+          // Both failed
+          const deepseekErrMsg = dsErr.message || String(dsErr);
+          return res.status(502).json({
+            error: `OpenAI failed: ${openaiErrMsg}; DeepSeek failed: ${deepseekErrMsg}`,
+            errorFriendly: '我们暂时无法生成回复，已尝试使用 ChatGPT 和 DeepSeek，但都未成功，请稍后再试或检查 API Key 配置。'
+          });
+        }
       }
+
+      // DeepSeek key missing and OpenAI failed
+      return res.status(502).json({
+        error: `OpenAI failed: ${openaiErrMsg}; DEEPSEEK_API_KEY not set`,
+        errorFriendly: '未检测到可用的后备模型（DeepSeek），请设置 DEEPSEEK_API_KEY 或确保 OPENAI_API_KEY 可用。'
+      });
     }
 
     // If user explicitly picked DeepSeek, use it (even if OpenAI available)
