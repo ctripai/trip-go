@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 
 export default function Home() {
   const [response, setResponse] = useState('');
@@ -21,6 +21,8 @@ export default function Home() {
 
   // Use gpt-5-nano only (no model selection UI)
   const [openaiModel, setOpenaiModel] = useState('gpt-5-nano');
+  const [streaming, setStreaming] = useState(false);
+  const streamControllerRef = useRef(null);
 
   const callAPI = async () => {
     setLoading(true);
@@ -51,18 +53,23 @@ export default function Home() {
     setLoading(false);
   };
 
-  // New streaming call that consumes the Edge streaming endpoint
+  // New streaming call that consumes the Edge streaming endpoint with robust SSE parsing and abort support
   const streamAPI = async () => {
     setLoading(true);
     setResponse('');
     setError('');
     setStreaming(true);
 
+    // create AbortController for canceling the stream
+    const controller = new AbortController();
+    streamControllerRef.current = controller;
+
     try {
       const res = await fetch('/api/stream', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ openaiModel }),
+        signal: controller.signal,
       });
 
       if (!res.ok) {
@@ -70,68 +77,100 @@ export default function Home() {
         setError(data.errorFriendly || data.error || '流式请求失败');
         setStreaming(false);
         setLoading(false);
+        streamControllerRef.current = null;
         return;
       }
 
       const reader = res.body.getReader();
       const decoder = new TextDecoder();
-      let done = false;
+      let sseBuffer = ''; // buffer for partial chunks
       let accumulated = '';
 
-      while (!done) {
-        const { value, done: doneReading } = await reader.read();
-        if (doneReading) break;
-        const chunk = decoder.decode(value);
-        // The Responses API streams SSE-like 'data: ...' chunks; handle both SSE and raw text
-        const lines = chunk.split(/\r?\n/).filter(Boolean);
-        for (const line of lines) {
-          if (line.startsWith('data: ')) {
-            const payload = line.slice(6).trim();
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        const chunk = decoder.decode(value, { stream: true });
+        sseBuffer += chunk;
+
+        // Process complete lines ending with \n
+        let newlineIndex;
+        while ((newlineIndex = sseBuffer.indexOf('\n')) >= 0) {
+          const rawLine = sseBuffer.slice(0, newlineIndex);
+          sseBuffer = sseBuffer.slice(newlineIndex + 1);
+          const line = rawLine.replace(/\r$/, '');
+          if (!line) continue; // ignore empty lines
+
+          // SSE 'data: ' prefix handling
+          if (line.startsWith('data:')) {
+            const payload = line.slice(5).trim();
             if (payload === '[DONE]') {
-              done = true;
+              // stream finished
               break;
             }
+            // try parse JSON, but be resilient
             try {
               const parsed = JSON.parse(payload);
-              // Responses API may contain `output_text` or output array
-              if (parsed.output_text) {
+              // Extract text from various possible shapes
+              if (parsed.output_text && typeof parsed.output_text === 'string') {
                 accumulated += parsed.output_text;
               } else if (Array.isArray(parsed.output) && parsed.output.length) {
-                // try to extract text chunks
                 parsed.output.forEach((o) => {
                   if (typeof o === 'string') accumulated += o;
-                  else if (o.content) accumulated += (o.content.map(c => c.text || '').join(''));
+                  else if (o?.content) {
+                    if (Array.isArray(o.content)) {
+                      o.content.forEach(c => { if (typeof c?.text === 'string') accumulated += c.text; });
+                    }
+                  }
                 });
-              } else if (parsed.choices && parsed.choices[0]?.delta?.content) {
-                accumulated += parsed.choices[0].delta.content;
+              } else if (parsed.choices && Array.isArray(parsed.choices)) {
+                // Chat delta streaming style
+                parsed.choices.forEach(choice => {
+                  if (choice.delta && typeof choice.delta.content === 'string') accumulated += choice.delta.content;
+                  else if (choice.delta && Array.isArray(choice.delta.content)) accumulated += choice.delta.content.join('');
+                  else if (choice.message && choice.message.content) {
+                    if (typeof choice.message.content === 'string') accumulated += choice.message.content;
+                    else if (Array.isArray(choice.message.content)) accumulated += choice.message.content.join('');
+                  }
+                });
               } else {
+                // fallback: append stringified payload
                 accumulated += payload;
               }
-            } catch {
+            } catch (err) {
+              // not JSON: append raw
               accumulated += payload;
             }
           } else {
+            // raw text line
             accumulated += line;
           }
         }
+
         setResponse(`（来源: openai） ${accumulated}`);
       }
 
       setStreaming(false);
       setLoading(false);
+      streamControllerRef.current = null;
     } catch (err) {
+      // handle abort differently
+      if (err.name === 'AbortError') {
+        setError('流式已取消');
+      } else {
+        setError('流式调用失败：' + err.message + '；尝试回退至 DeepSeek...');
+        // Try fallback to non-streaming DeepSeek
+        try {
+          const res2 = await fetch('/api/deepseek', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ model: 'deepseek' }) });
+          const data2 = await res2.json();
+          if (res2.ok) setResponse(`（来源: ${data2.modelUsed || 'deepseek'}） ` + data2.response);
+          else setError(data2.error || '回退 DeepSeek 失败');
+        } catch (er) {
+          setError('回退失败：' + er.message);
+        }
+      }
       setStreaming(false);
       setLoading(false);
-      setError('流式调用失败：' + err.message + '；尝试回退至 DeepSeek...');
-      // Try fallback to non-streaming DeepSeek
-      try {
-        const res2 = await fetch('/api/deepseek', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ model: 'deepseek' }) });
-        const data2 = await res2.json();
-        if (res2.ok) setResponse(`（来源: ${data2.modelUsed || 'deepseek'}） ` + data2.response);
-        else setError(data2.error || '回退 DeepSeek 失败');
-      } catch (er) {
-        setError('回退失败：' + er.message);
-      }
+      streamControllerRef.current = null;
     }
   };
 
@@ -226,19 +265,40 @@ export default function Home() {
         </button>
         <button
           onClick={streamAPI}
-          disabled={loading}
+          disabled={loading || streaming}
           style={{
             padding: '10px 20px',
             fontSize: '16px',
-            backgroundColor: loading ? '#ccc' : '#6f42c1',
+            backgroundColor: loading || streaming ? '#ccc' : '#6f42c1',
             color: 'white',
             border: 'none',
             borderRadius: '5px',
-            cursor: loading ? 'not-allowed' : 'pointer'
+            cursor: loading || streaming ? 'not-allowed' : 'pointer',
+            marginRight: '10px'
           }}
         >
-          {loading && streaming ? '流式中...' : '调用 API（流式）'}
+          {streaming ? '流式中...' : '调用 API（流式）'}
         </button>
+        {streaming && (
+          <button
+            onClick={() => {
+              if (streamControllerRef.current) streamControllerRef.current.abort();
+              setStreaming(false);
+              setLoading(false);
+            }}
+            style={{
+              padding: '10px 20px',
+              fontSize: '16px',
+              backgroundColor: '#d9534f',
+              color: 'white',
+              border: 'none',
+              borderRadius: '5px',
+              cursor: 'pointer'
+            }}
+          >
+            中止流式
+          </button>
+        )
       </div>
 
       {keyStatus && (

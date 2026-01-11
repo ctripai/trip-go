@@ -27,4 +27,8 @@ TripGo AI 旅行规划项目，帮助现代“懒人”们轻松开启每一次�
 - 流式支持：新增 `/api/stream`（Edge Runtime），用于将 OpenAI Responses API 的流式输出原样转发给浏览器以实现逐字显示（需在 Vercel 上部署 Edge 函数，确保设置 `OPENAI_API_KEY`）。
 
 注意：Edge 路由使用 `export const config = { runtime: 'edge' }`，并在浏览器端通过 `fetch` 读取 `response.body` 的 ReadableStream 来呈现流式输出。
+
+新增功能：
+- 客户端实现了更健壮的 SSE 解析器，能处理分片数据、SSE 的 `data:` 前缀、Responses API 的 `output_text`、`output[]`，以及 Chat delta（`choices[].delta.content`）等多种输出格式。
+- 添加了“中止流式”按钮，用户可随时取消正在进行的流式请求并回退或重试。
 - API 端点: `https://your-vercel-url.vercel.app/api/deepseek` 返回模型响应（支持 `model` 与 `openaiModel` 参数）。
