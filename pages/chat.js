@@ -2,8 +2,8 @@ import { useEffect } from 'react';
 
 export default function Chat() {
   useEffect(() => {
-    // 重定向到 /chat.html 路径
-    window.location.href = '/chat.html';
+    // 客户端重定向到 /chat/ 路径
+    window.location.href = '/chat/';
   }, []);
 
   return null;
