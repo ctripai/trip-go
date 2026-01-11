@@ -80,17 +80,15 @@ export default async function handler(req, res) {
   }
 
   try {
-    // If user selected ChatGPT explicitly, try OpenAI first and fallback to DeepSeek if key missing or error.
+    // If user selected ChatGPT explicitly, require OpenAI key and do NOT fallback
     if (selectedModel === 'chatgpt') {
+      if (!openaiKey) {
+        return res.status(500).json({ error: 'OPENAI_API_KEY not set' });
+      }
       try {
         const message = await callOpenAI();
         return res.status(200).json({ response: message, modelUsed: 'openai' });
       } catch (err) {
-        // If OpenAI not available, fallback to DeepSeek if key exists
-        if (deepseekKey) {
-          const message = await callDeepSeek();
-          return res.status(200).json({ response: message, modelUsed: 'deepseek', fallbackReason: err.message });
-        }
         return res.status(500).json({ error: err.message });
       }
     }
