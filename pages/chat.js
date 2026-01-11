@@ -8,6 +8,7 @@ export default function Chat() {
   const [loading, setLoading] = useState(false);
   const [streaming, setStreaming] = useState(false);
   const [error, setError] = useState('');
+  const [sidebarOpen, setSidebarOpen] = useState(true);
   const messagesRef = useRef(null);
   const abortRef = useRef(null);
   const idRef = useRef(2);
@@ -134,66 +135,99 @@ export default function Chat() {
   };
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh', fontFamily: 'Arial, sans-serif' }}>
-      {/* Left panel */}
-      <div style={{ width: '38%', padding: '40px', background: '#fff', boxSizing: 'border-box' }}>
-        <h2 style={{ marginTop: 0 }}>Layla.</h2>
-        <p>嗨，我是 Layla！很高兴帮助你打造完美的下一次旅行。告诉我你的想法，让我们开始吧。</p>
-        <button style={{ background: '#9b5cf6', color: 'white', padding: '10px 16px', border: 'none', borderRadius: '20px', cursor: 'pointer' }}>创建一个新行程</button>
+    <div className="chat-page">
+      <aside className={`sidebar ${sidebarOpen ? 'open' : 'closed'}`}>
+        <div className="sidebar-inner">
+          <h2>Layla.</h2>
+          <p className="muted">嗨，我是 Layla！很高兴帮助你打造完美的下一次旅行。</p>
+          <button className="primary">创建一个新行程</button>
 
-        <div style={{ marginTop: 30 }}>
-          <p>为了让我们的冒险不被打断，快升级订阅吧，这样我们就能解锁：</p>
-          <ul>
-            <li>无限次专属行程规划</li>
-            <li>一键下载并分享精美 PDF</li>
-            <li>挖掘只有圈内人才知道的隐藏宝藏景点</li>
-          </ul>
-        </div>
-
-        <div style={{ position: 'absolute', bottom: 30 }}>
-          <button style={{ background: '#2d3748', color: 'white', padding: '12px 20px', border: 'none', borderRadius: '24px', cursor: 'pointer' }}>开始 3 天免费试用</button>
-        </div>
-      </div>
-
-      {/* Right chat area */}
-      <div style={{ flex: 1, background: '#f6eefc', padding: '40px', boxSizing: 'border-box', position: 'relative' }}>
-        <div style={{ maxWidth: 760, margin: '0 auto' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-            <div style={{ width: 72, height: 72, borderRadius: '50%', background: '#eee', overflow: 'hidden' }}>
-              <img src="/avatar.png" alt="avatar" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-            </div>
-            <div>
-              <h3 style={{ margin: 0 }}>正在收集信息以规划你的行程...</h3>
-              <p style={{ margin: 0, color: '#6b7280' }}>分享你的旅行想法 ♡</p>
-            </div>
+          <div className="premium">
+            <p>升级订阅以解锁：</p>
+            <ul>
+              <li>无限次专属行程规划</li>
+              <li>一键下载并分享精美 PDF</li>
+              <li>挖掘隐藏宝藏景点</li>
+            </ul>
+            <button className="cta">开始 3 天免费试用</button>
           </div>
+        </div>
+        <button className="sidebar-toggle" onClick={() => setSidebarOpen(!sidebarOpen)}>{sidebarOpen ? '收起' : '展开'}</button>
+      </aside>
 
-          <div ref={messagesRef} style={{ marginTop: 24, height: '60vh', overflowY: 'auto', padding: 16, background: 'white', borderRadius: 10, boxShadow: '0 0 0 1px rgba(0,0,0,0.04) inset' }}>
-            {messages.map(msg => (
-              <div key={msg.id} style={{ display: 'flex', marginBottom: 12, flexDirection: msg.role === 'user' ? 'row-reverse' : 'row', gap: 10 }}>
-                <div style={{ width: 40, height: 40, borderRadius: '50%', background: msg.role === 'user' ? '#6f42c1' : '#e9d5ff' }} />
-                <div style={{ maxWidth: '80%', background: msg.role === 'user' ? '#6f42c1' : '#f3e8ff', color: msg.role === 'user' ? 'white' : 'black', padding: '10px 14px', borderRadius: 12, whiteSpace: 'pre-wrap' }}>
-                  {msg.text || (msg.streaming ? '...' : '')}
-                </div>
-              </div>
-            ))}
+      <main className="chat-area">
+        <header className="chat-header">
+          <div className="avatar"><img src="/avatar.png" alt="avatar" /></div>
+          <div>
+            <h3>正在收集信息以规划你的行程...</h3>
+            <p className="muted">分享你的旅行想法 ♡</p>
           </div>
+        </header>
 
-          <div style={{ marginTop: 16, display: 'flex', gap: 8, alignItems: 'center' }}>
-            <input value={input} onChange={(e) => setInput(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') sendMessage(); }} placeholder="问任何事情..." style={{ flex: 1, padding: '12px 14px', borderRadius: 20, border: '1px solid #e5e7eb' }} />
-            <button onClick={sendMessage} disabled={loading} style={{ padding: '10px 16px', background: '#7c3aed', color: 'white', border: 'none', borderRadius: 20 }}>发送</button>
+        <section ref={messagesRef} className="messages">
+          {messages.map(msg => (
+            <div key={msg.id} className={`message ${msg.role}`}>
+              <div className="avatar-small" />
+              <div className="bubble">{msg.text || (msg.streaming ? '...' : '')}</div>
+            </div>
+          ))}
+        </section>
+
+        <div className="composer">
+          <input value={input} onChange={(e) => setInput(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') sendMessage(); }} placeholder="问任何事情..." />
+          <div className="composer-actions">
+            <button onClick={sendMessage} className="send" disabled={loading}>发送</button>
             {streaming ? (
-              <button onClick={abortStream} style={{ padding: '10px 16px', background: '#ef4444', color: 'white', border: 'none', borderRadius: 20 }}>中止</button>
+              <button onClick={abortStream} className="abort">中止</button>
             ) : null}
           </div>
-
-          {error && (
-            <div style={{ marginTop: 12, padding: 12, background: '#fff5f5', border: '1px solid #fee2e2', borderRadius: 6 }}>
-              <strong>错误：</strong> {error}
-            </div>
-          )}
         </div>
-      </div>
+
+        {error && (
+          <div className="error">{error}</div>
+        )}
+      </main>
+
+      <style jsx>{`
+        .chat-page { display: flex; min-height: 100vh; font-family: Inter, Arial, sans-serif; }
+        .sidebar { width: 340px; background: white; padding: 28px; box-sizing: border-box; position: relative; transition: transform 200ms ease; }
+        .sidebar.closed { transform: translateX(-100%); }
+        .sidebar-inner h2 { margin: 0 0 8px 0; }
+        .muted { color: #6b7280; }
+        .primary { background:#9b5cf6;color:white;padding:8px 14px;border-radius:16px;border:none;cursor:pointer }
+        .premium { margin-top: 20px; }
+        .cta { margin-top: 12px; background:#2d3748;color:white;padding:8px 12px;border-radius:14px;border:none;cursor:pointer }
+        .sidebar-toggle { position:absolute; right:-44px; top:20px; background:#fff;border:1px solid #eee;padding:8px;border-radius:6px;cursor:pointer }
+
+        .chat-area { flex: 1; background:#f6eefc; padding: 28px; box-sizing: border-box; display:flex; flex-direction:column }
+        .chat-header { display:flex; gap:12px; align-items:center; }
+        .avatar img { width:64px; height:64px; border-radius:50% }
+
+        .messages { margin-top:20px; background:white; padding:16px; border-radius:10px; box-shadow: 0 0 0 1px rgba(0,0,0,0.04) inset; flex:1; overflow:auto }
+        .message { display:flex; gap:10px; margin-bottom:12px; align-items:flex-start }
+        .message.user { flex-direction:row-reverse }
+        .avatar-small { width:36px;height:36px;border-radius:50%;background:#e9d5ff }
+        .message.user .avatar-small { background:#6f42c1 }
+        .bubble { max-width: 80%; padding:10px 14px;border-radius:12px; background:#f3e8ff }
+        .message.user .bubble { background:#6f42c1;color:white }
+
+        .composer { display:flex; gap:8px; margin-top:16px; align-items:center }
+        .composer input { flex:1; padding:12px 14px;border-radius:20px;border:1px solid #e5e7eb }
+        .composer-actions { display:flex; gap:8px }
+        .send { background:#7c3aed;color:white;padding:8px 12px;border-radius:16px;border:none;cursor:pointer }
+        .abort { background:#ef4444;color:white;padding:8px 12px;border-radius:16px;border:none;cursor:pointer }
+
+        .error { margin-top:12px; padding:12px; background:#fff5f5; border:1px solid #fee2e2; border-radius:6px }
+
+        @media (max-width: 900px) {
+          .chat-page { flex-direction:column }
+          .sidebar { width:100%; transform:none; position:relative }
+          .sidebar.closed { transform:none; display:${'${sidebarOpen ? "block" : "none"}'} }
+          .sidebar-toggle { display:block; right: 16px; top: 10px }
+          .chat-area { padding:16px }
+          .messages { height: 50vh }
+        }
+      `}</style>
     </div>
   );
 }
