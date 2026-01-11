@@ -25,7 +25,7 @@ export default function Home() {
     setError('');
 
     try {
-      const res = await fetch('/api/index');
+      const res = await fetch('/api/deepseek');
       const data = await res.json();
 
       if (res.ok) {
