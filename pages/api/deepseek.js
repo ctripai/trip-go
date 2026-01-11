@@ -52,19 +52,19 @@ export default async function handler(req, res) {
     return data.choices?.[0]?.message?.content || 'No response';
   }
 
-  // Helper: call OpenAI Chat Completions
+  // Helper: call OpenAI Responses API (supports new models like gpt-5-nano)
   async function callOpenAI() {
     if (!openaiKey) {
       throw new Error('OPENAI_API_KEY not set');
     }
-    const body = { model: openaiModel, messages };
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+    const reqBody = { model: openaiModel, input: 'Hello, world! Please respond with a simple greeting.' };
+    const response = await fetch('https://api.openai.com/v1/responses', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${openaiKey}`
       },
-      body: JSON.stringify(body)
+      body: JSON.stringify(reqBody)
     });
     const text = await response.text();
     if (!response.ok) {
@@ -76,7 +76,20 @@ export default async function handler(req, res) {
       }
     }
     const data = JSON.parse(text);
-    return data.choices?.[0]?.message?.content || 'No response';
+    // Parse various possible response shapes from Responses API or older Chat API
+    if (data.output_text) return data.output_text;
+    if (Array.isArray(data.output) && data.output.length) {
+      return data.output.map((o) => {
+        if (typeof o === 'string') return o;
+        if (o.content) {
+          return o.content.map(c => c.text || (typeof c === 'string' ? c : '')).join('');
+        }
+        return '';
+      }).join('\n');
+    }
+    if (data.choices?.[0]?.message?.content) return data.choices[0].message.content;
+    // Fallback: return stringified body so user can inspect
+    return JSON.stringify(data);
   }
 
   try {

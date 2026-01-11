@@ -107,6 +107,7 @@ export default function Home() {
               <strong>ChatGPT 模型：</strong>
             </label>
             <select value={openaiModel} onChange={(e)=>setOpenaiModel(e.target.value)} style={{ padding: '8px 10px', marginRight: '20px' }}>
+              <option value="gpt-5-nano">gpt-5-nano</option>
               <option value="gpt-4">gpt-4</option>
               <option value="gpt-4o">gpt-4o</option>
               <option value="gpt-3.5-turbo">gpt-3.5-turbo</option>
